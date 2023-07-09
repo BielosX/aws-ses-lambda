@@ -1,3 +1,5 @@
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import lombok.SneakyThrows;
 import lombok.experimental.Delegate;
 import org.thymeleaf.TemplateEngine;
@@ -13,6 +15,7 @@ import java.util.Map;
 public class EmailTemplateEngine {
     @Delegate
     private final TemplateEngine engine;
+    private final Gson gson = new Gson();
 
     public EmailTemplateEngine() {
         ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
@@ -25,11 +28,8 @@ public class EmailTemplateEngine {
 
     @SneakyThrows
     public String process(String template, Object object) {
-        Map<String, Object> variables = new HashMap<>();
-        for (Field field: object.getClass().getDeclaredFields()) {
-            field.setAccessible(true);
-            variables.put(field.getName(), field.get(object));
-        }
+        String json = gson.toJson(object);
+        Map<String, Object> variables = gson.fromJson(json, new TypeToken<Map<String,Object>>(){}.getType());
         return engine.process(template, new Context(Locale.US, variables));
     }
 }

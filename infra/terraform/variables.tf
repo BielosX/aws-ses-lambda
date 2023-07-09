@@ -5,3 +5,11 @@ variable "jar-file-path" {
 variable "artifact-name" {
   type = string
 }
+
+variable "ses-domain" {
+  type = string
+}
+
+variable "sandbox-to-email" {
+  type = string
+}

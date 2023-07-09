@@ -1,0 +1,7 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <body>
+        Hello <span th:text="${email}">Email</span>, thank you for contacting us.
+        <p>Your request:</p>
+        <p th:utext="${request}">Content</p>
+    </body>
+</html>

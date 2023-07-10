@@ -25,24 +25,6 @@ resource "aws_ses_domain_dkim" "dkim" {
   domain = aws_ses_domain_identity.ses-domain.id
 }
 
-resource "aws_route53_zone" "zone" {
-  name = var.ses-domain
-}
-
-resource "aws_route53_record" "dkim-record" {
-  count = 3
-  zone_id = aws_route53_zone.zone.id
-  name = "${aws_ses_domain_dkim.dkim.dkim_tokens[count.index]}._domainkey"
-  type = "CNAME"
-  ttl = "600"
-  records = ["${aws_ses_domain_dkim.dkim.dkim_tokens[count.index]}.dkim.amazonses.com"]
-}
-
-resource "aws_ses_domain_identity_verification" "example_verification" {
-  domain = aws_ses_domain_identity.ses-domain.id
-  depends_on = [aws_route53_record.dkim-record]
-}
-
 // In Sandbox mode only sending to verified emails is possible
 resource "aws_ses_email_identity" "sandbox-to-email" {
   email = var.sandbox-to-email

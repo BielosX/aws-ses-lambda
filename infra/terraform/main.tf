@@ -134,6 +134,8 @@ resource "aws_ses_receipt_rule" "sns-rule" {
   enabled = true
   scan_enabled = true
   rule_set_name = aws_ses_receipt_rule_set.rule-set.id
+  // Email size up to 150KB https://docs.aws.amazon.com/ses/latest/dg/receiving-email-action-sns.html
+  // For bigger use S3
   sns_action {
     position = 1
     topic_arn = aws_sns_topic.ses-email-received-topic.arn

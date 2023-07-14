@@ -5,17 +5,12 @@ terraform {
       version = "5.7.0"
     }
   }
+  backend "s3" {
+    key = "lambda.tfstate"
+  }
 }
 
 provider "aws" {}
-
-data "aws_caller_identity" "current" {}
-data "aws_region" "current" {}
-
-locals {
-  region = data.aws_region.current.name
-  account-id = data.aws_caller_identity.current.account_id
-}
 
 resource "aws_ses_domain_identity" "ses-domain" {
   domain = var.ses-domain
@@ -28,31 +23,6 @@ resource "aws_ses_domain_dkim" "dkim" {
 // In Sandbox mode only sending to verified emails is possible
 resource "aws_ses_email_identity" "sandbox-to-email" {
   email = var.sandbox-to-email
-}
-
-resource "aws_s3_bucket" "artifacts-bucket" {
-  bucket = "artifacts-${local.account-id}-${local.region}"
-}
-
-resource "aws_s3_bucket_public_access_block" "artifacts-bucket-access" {
-  bucket = aws_s3_bucket.artifacts-bucket.id
-  block_public_acls = true
-  block_public_policy = true
-  ignore_public_acls = true
-  restrict_public_buckets = true
-}
-
-resource "aws_s3_bucket_ownership_controls" "artifacts-bucket-ownership" {
-  bucket = aws_s3_bucket.artifacts-bucket.id
-  rule {
-    object_ownership = "BucketOwnerEnforced"
-  }
-}
-
-resource "aws_s3_object" "jar-file" {
-  bucket = aws_s3_bucket.artifacts-bucket.id
-  key = var.artifact-name
-  source = var.jar-file-path
 }
 
 data "aws_iam_policy_document" "lambda-assume-role" {
@@ -74,13 +44,23 @@ resource "aws_iam_role" "lambda-role" {
   ]
 }
 
-resource "aws_lambda_function" "welcome-lambda" {
-  function_name = "welcome-lambda"
+locals {
+  help-lambda-name = "help-lambda"
+  welcome-lambda-name = "welcome-lambda"
+  lambdas = {
+    (local.welcome-lambda-name) = "LambdaInvocationHandler::handleRequest"
+    (local.help-lambda-name) = "HelpEmailHandler::handleRequest"
+  }
+}
+
+resource "aws_lambda_function" "lambda" {
+  for_each = local.lambdas
+  function_name = each.key
   role = aws_iam_role.lambda-role.arn
   runtime = "java17"
-  handler = "LambdaInvocationHandler::handleRequest"
-  s3_bucket = aws_s3_bucket.artifacts-bucket.id
-  s3_key = aws_s3_object.jar-file.id
+  handler = each.value
+  s3_bucket = var.artifact-bucket-arn
+  s3_key = var.artifact-name
   timeout = 60
   memory_size = 1024
   environment {
@@ -146,30 +126,14 @@ resource "aws_ses_active_receipt_rule_set" "active-rule" {
   rule_set_name = aws_ses_receipt_rule_set.rule-set.id
 }
 
-resource "aws_lambda_function" "help-lambda" {
-  function_name = "help-lambda"
-  role = aws_iam_role.lambda-role.arn
-  runtime = "java17"
-  handler = "HelpEmailHandler::handleRequest"
-  s3_bucket = aws_s3_bucket.artifacts-bucket.id
-  s3_key = aws_s3_object.jar-file.id
-  timeout = 60
-  memory_size = 1024
-  environment {
-    variables = {
-      FROM_DOMAIN: aws_ses_domain_identity.ses-domain.id
-    }
-  }
-}
-
 resource "aws_lambda_permission" "sns-invoke-permission" {
   action = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.help-lambda.function_name
+  function_name = aws_lambda_function.lambda[local.help-lambda-name].function_name
   principal = "sns.amazonaws.com"
 }
 
 resource "aws_sns_topic_subscription" "help-lambda-subscription" {
-  endpoint = aws_lambda_function.help-lambda.arn
+  endpoint = aws_lambda_function.lambda[local.help-lambda-name].arn
   protocol = "lambda"
   topic_arn = aws_sns_topic.ses-email-received-topic.arn
 }

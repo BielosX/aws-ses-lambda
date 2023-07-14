@@ -1,8 +1,8 @@
-variable "jar-file-path" {
+variable "artifact-name" {
   type = string
 }
 
-variable "artifact-name" {
+variable "artifact-bucket-arn" {
   type = string
 }
 

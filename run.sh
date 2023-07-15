@@ -46,12 +46,12 @@ function deploy_app() {
   aws s3 cp "$artifact_path" "s3://${bucket_name}/${artifact_name}"
 }
 
-function deploy_lambda_terraform() {
+function deploy_lambda_app_terraform() {
   ses_domain="$1"
   sandbox_to_email="$2"
   artifact_name="$3"
   artifact_bucket_arn="$4"
-  pushd infra/terraform/modules/lambda || exit
+  pushd infra/terraform/modules/lambda-app || exit
   get_exports
   get_backend_bucket "$exports"
   get_lock_table "$exports"
@@ -79,7 +79,7 @@ function deploy_terraform() {
     exit 255
   fi
   deploy_app "$artifacts_bucket_name"
-  deploy_lambda_terraform "$ses_domain" \
+  deploy_lambda_app_terraform "$ses_domain" \
     "$sandbox_to_email" \
     "$artifact_name" \
     "$artifacts_bucket_name"
@@ -96,8 +96,8 @@ function clean_bucket() {
 }
 
 function destroy_terraform() {
-  pushd infra/terraform/modules/lambda || exit
-  Echo "Destroying lambda module"
+  pushd infra/terraform/modules/lambda-app || exit
+  Echo "Destroying lambda-app module"
   terraform destroy -auto-approve || exit
   popd || exit
   pushd infra/terraform/modules/artifacts-bucket || exit

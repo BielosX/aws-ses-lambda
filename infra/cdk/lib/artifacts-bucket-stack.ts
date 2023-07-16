@@ -5,7 +5,7 @@ import { Construct } from 'constructs';
 export class ArtifactsBucketStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-    var bucket = new Bucket(this, 'ArtifactsBucket', {
+    const bucket = new Bucket(this, 'ArtifactsBucket', {
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       versioned: true,
       autoDeleteObjects: true,

@@ -21,7 +21,9 @@ export class SesConstruct extends Construct {
         });
         this.helpEmailReceivedTopic = new Topic(this, 'EmailReceivedTopic');
         this.helpEmailReceivedTopic.grantPublish(new ServicePrincipal('ses.amazonaws.com'));
+        // Has to be activated from CLI
         new ReceiptRuleSet(this, 'RuleSet', {
+            receiptRuleSetName: 'forward-to-sns-rule-set',
             rules: [
                 {
                     recipients: [`help@${props.domain}`],

@@ -176,10 +176,14 @@ function deploy_cdk() {
   deploy_app "$artifacts_bucket_name"
   echo "Deploying Lambda App"
   deploy_cdk_lambda_app "$ses_domain" "$sandbox_to_email" "$artifact_name"
+  # It's not possible to activate it using CDK
+  aws ses set-active-receipt-rule-set --rule-set-name "forward-to-sns-rule-set"
 }
 
 function destroy_cdk() {
   pushd infra/cdk || exit
+  # Deactivate rule set. Required before delete
+  aws ses set-active-receipt-rule-set
   cdk destroy --app "$NPX bin/lambda.ts" \
     -c "domain=temp" \
     -c "sandboxToEmail=temp" \

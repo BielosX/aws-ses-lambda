@@ -41,6 +41,7 @@ export class LambdaConstruct extends Construct {
                 code: Code.fromBucket(props.artifactBucket, props.artifactName),
                 timeout: Duration.minutes(1),
                 memorySize: 1024,
+                role: lambdaRole,
                 environment: {
                     FROM_DOMAIN: props.fromDomain
                 }

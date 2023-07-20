@@ -14,7 +14,8 @@ export class LambdaAppStack extends cdk.Stack {
         const artifactBucket = Bucket.fromBucketName(this, 'ArtifactsBcuket', bucketName);
         const ses = new SesConstruct(this, 'Ses', {
             domain,
-            sandboxToEmail
+            sandboxToEmail,
+            emailBucketName: `email-bucket-${this.region}-${this.account}`
         });
         new LambdaConstruct(this, 'Lambda', {
             emailReceivedTopic: ses.helpEmailReceivedTopic,

@@ -3,6 +3,8 @@ import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { SesConstruct } from './ses-construct';
 import { LambdaConstruct } from './lambda-construct';
+import {ApiGatewayV2Construct} from "./api-gateway-v2-construct";
+import {IFunction} from "aws-cdk-lib/aws-lambda";
 
 export class LambdaAppStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -17,11 +19,14 @@ export class LambdaAppStack extends cdk.Stack {
             sandboxToEmail,
             emailBucketName: `email-bucket-${this.region}-${this.account}`
         });
-        new LambdaConstruct(this, 'Lambda', {
+        const lambda = new LambdaConstruct(this, 'Lambda', {
             emailReceivedTopic: ses.helpEmailReceivedTopic,
             fromDomain: domain,
             artifactName,
             artifactBucket
+        });
+        new ApiGatewayV2Construct(this, 'ApiGatewayV2', {
+            welcomeLambda: lambda.lambdas.get('welcome-lambda') as IFunction
         });
     }
 }

@@ -14,12 +14,14 @@ type LambdaConstructProps = {
 };
 
 export class LambdaConstruct extends Construct {
+    public readonly lambdas: Map<string, Function>;
     constructor(scope: Construct, id: string, props: LambdaConstructProps) {
         super(scope, id);
+        this.lambdas = new Map<string, Function>();
         const functionToHandler = new Map<string,string>(
             [
                 ['help-lambda', 'HelpEmailHandler::handleRequest'],
-                ['welcome-lambda', 'LambdaInvocationHandler::handleRequest']
+                ['welcome-lambda', 'WelcomeEmailHandler::handleRequest']
             ]
         );
         const lambdaRole = new Role(this, 'LambdaRole', {
@@ -46,6 +48,7 @@ export class LambdaConstruct extends Construct {
                     FROM_DOMAIN: props.fromDomain
                 }
             });
+            this.lambdas.set(functionName, func);
             if (functionName === 'help-lambda') {
                 props.emailReceivedTopic.addSubscription(new LambdaSubscription(func))
             }

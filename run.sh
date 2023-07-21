@@ -134,7 +134,8 @@ NPX="npx ts-node --prefer-ts-exts"
 function deploy_cdk_artifacts_bucket() {
   pushd infra/cdk || exit
   cdk bootstrap --app "$NPX bin/artifacts.ts" || exit
-  cdk deploy --app "$NPX bin/artifacts.ts" || exit
+  cdk deploy --app "$NPX bin/artifacts.ts" \
+    --require-approval never || exit
   popd || exit
 }
 
@@ -148,6 +149,7 @@ function deploy_cdk_lambda_app() {
   -c "sandboxToEmail=$2" \
   -c "artifactName=$3" || exit
   cdk deploy --app "$NPX bin/lambda.ts" \
+    --require-approval never \
     -c "domain=$1" \
     -c "sandboxToEmail=$2" \
     -c "artifactName=$3" || exit

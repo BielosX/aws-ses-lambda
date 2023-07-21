@@ -1,6 +1,6 @@
 import { Duration } from 'aws-cdk-lib';
 import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import {Alias, Code, Function, Runtime} from 'aws-cdk-lib/aws-lambda';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
@@ -18,10 +18,12 @@ export class LambdaConstruct extends Construct {
     constructor(scope: Construct, id: string, props: LambdaConstructProps) {
         super(scope, id);
         this.lambdas = new Map<string, Function>();
+        const helpLambdaName = 'help-lambda';
+        const welcomeLambdaName = 'welcome-lambda';
         const functionToHandler = new Map<string,string>(
             [
-                ['help-lambda', 'HelpEmailHandler::handleRequest'],
-                ['welcome-lambda', 'WelcomeEmailHandler::handleRequest']
+                [helpLambdaName, 'HelpEmailHandler::handleRequest'],
+                [welcomeLambdaName, 'WelcomeEmailHandler::handleRequest']
             ]
         );
         const lambdaRole = new Role(this, 'LambdaRole', {
@@ -49,8 +51,15 @@ export class LambdaConstruct extends Construct {
                 }
             });
             this.lambdas.set(functionName, func);
-            if (functionName === 'help-lambda') {
+            if (functionName === helpLambdaName) {
                 props.emailReceivedTopic.addSubscription(new LambdaSubscription(func))
+            }
+            if (functionName === welcomeLambdaName) {
+                new Alias(this, 'LambdaAlias', {
+                    aliasName: 'welcome-lambda-alias',
+                    version: func.currentVersion,
+                    provisionedConcurrentExecutions: 1
+                });
             }
         });
     }

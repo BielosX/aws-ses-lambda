@@ -36,6 +36,7 @@ resource "aws_lambda_function" "lambda" {
   s3_key = var.artifact-name
   timeout = 60
   memory_size = 1024
+  publish = true // Required for provisioned concurrency
   environment {
     variables = {
       FROM_DOMAIN: var.ses-domain
@@ -53,6 +54,12 @@ resource "aws_lambda_permission" "api-gateway-invoke-permission" {
   action = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda[local.welcome-lambda-name].function_name
   principal = "apigateway.amazonaws.com"
+}
+
+resource "aws_lambda_provisioned_concurrency_config" "welcome-lambda-provisioned-concurrency" {
+  function_name = aws_lambda_function.lambda[local.welcome-lambda-name].id
+  provisioned_concurrent_executions = 1
+  qualifier = aws_lambda_function.lambda[local.welcome-lambda-name].version
 }
 
 resource "aws_sns_topic_subscription" "help-lambda-subscription" {

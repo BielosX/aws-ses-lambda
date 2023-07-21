@@ -25,3 +25,9 @@ module "lambda" {
   email-received-topic-arn = module.ses.email-received-topic-arn
   ses-domain = module.ses.ses-domain
 }
+
+module "api-gateway" {
+  source = "./api-gateway"
+  api-name = "email-api"
+  welcome-lambda-arn = module.lambda.welcome-lambda-arn
+}

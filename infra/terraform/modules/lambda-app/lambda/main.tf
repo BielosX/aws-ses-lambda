@@ -21,7 +21,7 @@ locals {
   help-lambda-name = "help-lambda"
   welcome-lambda-name = "welcome-lambda"
   lambdas = {
-    (local.welcome-lambda-name) = "LambdaInvocationHandler::handleRequest"
+    (local.welcome-lambda-name) = "WelcomeEmailHandler::handleRequest"
     (local.help-lambda-name) = "HelpEmailHandler::handleRequest"
   }
 }
@@ -47,6 +47,12 @@ resource "aws_lambda_permission" "sns-invoke-permission" {
   action = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda[local.help-lambda-name].function_name
   principal = "sns.amazonaws.com"
+}
+
+resource "aws_lambda_permission" "api-gateway-invoke-permission" {
+  action = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda[local.welcome-lambda-name].function_name
+  principal = "apigateway.amazonaws.com"
 }
 
 resource "aws_sns_topic_subscription" "help-lambda-subscription" {

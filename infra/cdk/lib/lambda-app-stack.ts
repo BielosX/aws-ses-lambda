@@ -4,7 +4,6 @@ import { Construct } from 'constructs';
 import { SesConstruct } from './ses-construct';
 import { LambdaConstruct } from './lambda-construct';
 import {ApiGatewayV2Construct} from "./api-gateway-v2-construct";
-import {IFunction} from "aws-cdk-lib/aws-lambda";
 
 export class LambdaAppStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -23,10 +22,11 @@ export class LambdaAppStack extends cdk.Stack {
             emailReceivedTopic: ses.helpEmailReceivedTopic,
             fromDomain: domain,
             artifactName,
-            artifactBucket
+            artifactBucket,
+            emailBucketReceivedTopic: ses.s3EmailReceivedTopic
         });
         new ApiGatewayV2Construct(this, 'ApiGatewayV2', {
-            welcomeLambda: lambda.lambdas.get('welcome-lambda') as IFunction
+            welcomeLambdaAlias: lambda.welcomeLambdaAlias
         });
     }
 }

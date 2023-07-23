@@ -13,7 +13,6 @@ import software.amazon.awssdk.services.ses.model.*;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
 import java.util.Properties;
 

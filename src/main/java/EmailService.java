@@ -1,12 +1,21 @@
+import jakarta.mail.Message.RecipientType;
+import jakarta.mail.Multipart;
+import jakarta.mail.Session;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.model.Body;
-import software.amazon.awssdk.services.ses.model.Content;
-import software.amazon.awssdk.services.ses.model.Destination;
-import software.amazon.awssdk.services.ses.model.Message;
-import software.amazon.awssdk.services.ses.model.SendEmailRequest;
+import software.amazon.awssdk.services.ses.model.*;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.List;
+import java.util.Properties;
 
 @Slf4j
 public class EmailService {
@@ -35,5 +44,41 @@ public class EmailService {
                 .build();
         log.info("Sending email from {} to {} with subject {}", from, to, subject);
         client.sendEmail(request);
+    }
+
+    public record EmailAttachment(byte[] content, String contentType, String name) {}
+
+    @SneakyThrows
+    public void sendTextEmailWithAttachments(String from,
+                                             String to,
+                                             String subject,
+                                             String textBody,
+                                             List<EmailAttachment> attachments) {
+        Session session = Session.getInstance(new Properties());
+        jakarta.mail.Message email = new MimeMessage(session);
+        email.setFrom(new InternetAddress(from));
+        email.setRecipient(RecipientType.TO, new InternetAddress(to));
+        email.setSubject(subject);
+        email.setText(textBody);
+        Multipart multipart = new MimeMultipart();
+        for (EmailAttachment attachment: attachments) {
+            MimeBodyPart bodyPart = new MimeBodyPart();
+            bodyPart.setDisposition("attachment;" + "filename=" + "\"" + attachment.name() + "\"");
+            bodyPart.setContent(attachment.content(), attachment.contentType());
+            multipart.addBodyPart(bodyPart);
+        }
+        email.setContent(multipart);
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        email.writeTo(stream);
+        RawMessage message = RawMessage.builder()
+                .data(SdkBytes.fromByteArray(stream.toByteArray()))
+                .build();
+        SendRawEmailRequest request = SendRawEmailRequest.builder()
+                .rawMessage(message)
+                .source(from)
+                .destinations(to)
+                .build();
+        log.info("Sending email with {} attachments from {} to {}", attachments.size(), from, to);
+        client.sendRawEmail(request);
     }
 }

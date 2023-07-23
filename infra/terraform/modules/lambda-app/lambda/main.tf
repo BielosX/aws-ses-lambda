@@ -13,16 +13,19 @@ resource "aws_iam_role" "lambda-role" {
   assume_role_policy = data.aws_iam_policy_document.lambda-assume-role.json
   managed_policy_arns = [
     "arn:aws:iam::aws:policy/AmazonSESFullAccess",
-    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
   ]
 }
 
 locals {
   help-lambda-name = "help-lambda"
   welcome-lambda-name = "welcome-lambda"
+  excel-lambda-name = "excel-lambda"
   lambdas = {
     (local.welcome-lambda-name) = "WelcomeEmailHandler::handleRequest"
     (local.help-lambda-name) = "HelpEmailHandler::handleRequest"
+    (local.excel-lambda-name) = "EmailUploadedHandler::handleRequest"
   }
 }
 
@@ -50,6 +53,12 @@ resource "aws_lambda_permission" "sns-invoke-permission" {
   principal = "sns.amazonaws.com"
 }
 
+resource "aws_lambda_permission" "excel-lambda-invoke-permission" {
+  action = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda[local.excel-lambda-name].function_name
+  principal = "sns.amazonaws.com"
+}
+
 resource "aws_lambda_permission" "api-gateway-invoke-permission" {
   action = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda[local.welcome-lambda-name].function_name
@@ -66,4 +75,10 @@ resource "aws_sns_topic_subscription" "help-lambda-subscription" {
   endpoint = aws_lambda_function.lambda[local.help-lambda-name].arn
   protocol = "lambda"
   topic_arn = var.email-received-topic-arn
+}
+
+resource "aws_sns_topic_subscription" "excel-lambda-subscription" {
+  endpoint = aws_lambda_function.lambda[local.excel-lambda-name].arn
+  protocol = "lambda"
+  topic_arn = var.email-uploaded-topic-arn
 }

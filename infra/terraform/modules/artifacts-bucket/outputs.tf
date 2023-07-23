@@ -1,7 +1,7 @@
 output "bucket-name" {
-  value = aws_s3_bucket.artifacts-bucket.id
+  value = module.private-bucket.bucket-name
 }
 
 output "bucket-arn" {
-  value = aws_s3_bucket.artifacts-bucket.arn
+  value = module.private-bucket.bucket-arn
 }

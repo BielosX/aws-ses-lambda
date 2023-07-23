@@ -13,3 +13,7 @@ variable "ses-domain" {
 variable "email-received-topic-arn" {
   type = string
 }
+
+variable "email-uploaded-topic-arn" {
+  type = string
+}

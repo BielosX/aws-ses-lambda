@@ -47,6 +47,7 @@ function deploy_artifacts_bucket_terraform() {
 
 # 1: S3 Bucket Name
 function deploy_app() {
+  ./gradlew spotlessJavaCheck || exit
   ./gradlew clean build shadowJar || exit
   artifact_path=$(readlink -f build/libs/aws-ses-lambda-all.jar)
   timestamp=$(date +%s)

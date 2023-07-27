@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
-import { BlockPublicAccess, Bucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
-import { Construct } from 'constructs';
+import {BlockPublicAccess, Bucket, ObjectOwnership} from 'aws-cdk-lib/aws-s3';
+import {Construct} from 'constructs';
 
 type PrivateBucketConstructProps = {
     versioned?: boolean

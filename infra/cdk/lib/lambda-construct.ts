@@ -1,10 +1,10 @@
-import { Duration } from 'aws-cdk-lib';
-import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import {Duration} from 'aws-cdk-lib';
+import {ManagedPolicy, Role, ServicePrincipal} from 'aws-cdk-lib/aws-iam';
 import {Alias, Code, Function, IAlias, IFunction, Runtime} from 'aws-cdk-lib/aws-lambda';
-import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { ITopic } from 'aws-cdk-lib/aws-sns';
-import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
-import { Construct } from 'constructs';
+import {IBucket} from 'aws-cdk-lib/aws-s3';
+import {ITopic} from 'aws-cdk-lib/aws-sns';
+import {LambdaSubscription} from 'aws-cdk-lib/aws-sns-subscriptions';
+import {Construct} from 'constructs';
 
 type LambdaConstructProps = {
     emailReceivedTopic: ITopic,

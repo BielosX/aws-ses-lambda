@@ -1,7 +1,5 @@
 import {Construct} from "constructs";
 import {aws_apigatewayv2 as apigatewayv2} from 'aws-cdk-lib';
-import {IAlias} from "aws-cdk-lib/aws-lambda";
-import {ServicePrincipal} from "aws-cdk-lib/aws-iam";
 
 type ApiGatewayV2ConstructProps = {
     welcomeLambdaAliasArn: string

@@ -1,7 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
-import { BlockPublicAccess, Bucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
-import { Construct } from 'constructs';
-import { PrivateBucketConstruct } from "./private-bucket-construct";
+import {Construct} from 'constructs';
+import {PrivateBucketConstruct} from "./private-bucket-construct";
 
 export class ArtifactsBucketStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {

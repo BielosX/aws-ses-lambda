@@ -1,9 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { Construct } from 'constructs';
-import { SesConstruct } from './ses-construct';
-import { LambdaConstruct } from './lambda-construct';
-import {ApiGatewayV2Construct} from "./api-gateway-v2-construct";
+import {Bucket} from 'aws-cdk-lib/aws-s3';
+import {Construct} from 'constructs';
+import {SesConstruct} from './ses-construct';
+import {LambdaConstruct} from './lambda-construct';
 
 export class LambdaAppStack extends cdk.Stack {
     public readonly welcomeLambdaAliasArn: string;

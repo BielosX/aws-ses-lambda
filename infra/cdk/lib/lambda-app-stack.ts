@@ -6,6 +6,7 @@ import { LambdaConstruct } from './lambda-construct';
 import {ApiGatewayV2Construct} from "./api-gateway-v2-construct";
 
 export class LambdaAppStack extends cdk.Stack {
+    public readonly welcomeLambdaAliasArn: string;
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
         const domain = this.node.tryGetContext('domain');
@@ -25,8 +26,6 @@ export class LambdaAppStack extends cdk.Stack {
             artifactBucket,
             emailBucketReceivedTopic: ses.s3EmailReceivedTopic
         });
-        new ApiGatewayV2Construct(this, 'ApiGatewayV2', {
-            welcomeLambdaAlias: lambda.welcomeLambdaAlias
-        });
+        this.welcomeLambdaAliasArn = lambda.lambdaAliases.get(lambda.welcomeLambdaAliasName)?.functionArn as string;
     }
 }

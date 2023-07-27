@@ -1,6 +1,6 @@
 import { Duration } from 'aws-cdk-lib';
 import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import {Alias, Code, Function, IAlias, Runtime} from 'aws-cdk-lib/aws-lambda';
+import {Alias, Code, Function, IAlias, IFunction, Runtime} from 'aws-cdk-lib/aws-lambda';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { ITopic } from 'aws-cdk-lib/aws-sns';
 import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
@@ -15,19 +15,21 @@ type LambdaConstructProps = {
 };
 
 export class LambdaConstruct extends Construct {
-    public readonly lambdas: Map<string, Function>;
-    public welcomeLambdaAlias: IAlias;
+    public readonly lambdas: Map<string, IFunction>;
+    public readonly lambdaAliases: Map<string, IAlias>;
+    public readonly helpLambdaName = 'help-lambda';
+    public readonly welcomeLambdaName = 'welcome-lambda';
+    public readonly excelLambdaName = 'excel-lambda';
+    public readonly welcomeLambdaAliasName = 'welcome-lambda-alias';
     constructor(scope: Construct, id: string, props: LambdaConstructProps) {
         super(scope, id);
-        this.lambdas = new Map<string, Function>();
-        const helpLambdaName = 'help-lambda';
-        const welcomeLambdaName = 'welcome-lambda';
-        const excelLambdaName = 'excel-lambda';
+        this.lambdas = new Map<string, IFunction>();
+        this.lambdaAliases = new Map<string, IAlias>();
         const functionToHandler = new Map<string,string>(
             [
-                [helpLambdaName, 'HelpEmailHandler::handleRequest'],
-                [welcomeLambdaName, 'WelcomeEmailHandler::handleRequest'],
-                [excelLambdaName, 'EmailUploadedHandler::handleRequest']
+                [this.helpLambdaName, 'HelpEmailHandler::handleRequest'],
+                [this.welcomeLambdaName, 'WelcomeEmailHandler::handleRequest'],
+                [this.excelLambdaName, 'EmailUploadedHandler::handleRequest']
             ]
         );
         const lambdaRole = new Role(this, 'LambdaRole', {
@@ -58,17 +60,19 @@ export class LambdaConstruct extends Construct {
                 }
             });
             this.lambdas.set(functionName, func);
-            if (functionName === helpLambdaName) {
+            if (functionName === this.helpLambdaName) {
                 props.emailReceivedTopic.addSubscription(new LambdaSubscription(func))
             }
-            if (functionName === welcomeLambdaName) {
-                this.welcomeLambdaAlias = new Alias(this, 'LambdaAlias', {
-                    aliasName: 'welcome-lambda-alias',
+            if (functionName === this.welcomeLambdaName) {
+                const welcomeLambdaAlias = new Alias(this, 'LambdaAlias', {
+                    aliasName: this.welcomeLambdaAliasName,
                     version: func.currentVersion,
                     provisionedConcurrentExecutions: 1
                 });
+                welcomeLambdaAlias.grantInvoke(new ServicePrincipal("apigateway.amazonaws.com"));
+                this.lambdaAliases.set(this.welcomeLambdaAliasName, welcomeLambdaAlias);
             }
-            if (functionName === excelLambdaName) {
+            if (functionName === this.excelLambdaName) {
                 props.emailBucketReceivedTopic.addSubscription(new LambdaSubscription(func));
             }
         });

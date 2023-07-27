@@ -151,6 +151,7 @@ function deploy_cdk_lambda_app() {
   -c "artifactName=$3" || exit
   cdk deploy --app "$NPX bin/lambda.ts" \
     --require-approval never \
+    --all \
     -c "domain=$1" \
     -c "sandboxToEmail=$2" \
     -c "artifactName=$3" || exit
@@ -188,6 +189,7 @@ function destroy_cdk() {
   # Deactivate rule set. Required before delete
   aws ses set-active-receipt-rule-set
   cdk destroy --app "$NPX bin/lambda.ts" \
+    --all \
     -c "domain=temp" \
     -c "sandboxToEmail=temp" \
     -c "artifactName=temp" || exit

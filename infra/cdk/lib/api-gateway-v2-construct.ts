@@ -4,13 +4,12 @@ import {IAlias} from "aws-cdk-lib/aws-lambda";
 import {ServicePrincipal} from "aws-cdk-lib/aws-iam";
 
 type ApiGatewayV2ConstructProps = {
-    welcomeLambdaAlias: IAlias
+    welcomeLambdaAliasArn: string
 };
 
 export class ApiGatewayV2Construct extends Construct {
     constructor(scope: Construct, id: string, props: ApiGatewayV2ConstructProps) {
         super(scope, id);
-        props.welcomeLambdaAlias.grantInvoke(new ServicePrincipal('apigateway.amazonaws.com'));
         const cfnApi = new apigatewayv2.CfnApi(this, 'ApiGatewayV2', {
             body: {
                 openapi: '3.0.1',
@@ -26,7 +25,7 @@ export class ApiGatewayV2Construct extends Construct {
                             'x-amazon-apigateway-integration': {
                                 type: 'AWS_PROXY', // Dedicated Lambda type
                                 httpMethod: 'POST',
-                                uri: props.welcomeLambdaAlias.aliasName,
+                                uri: props.welcomeLambdaAliasArn,
                                 payloadFormatVersion: '2.0'
                             }
                         }

@@ -17,6 +17,7 @@ export class SesConstruct extends Construct {
     public readonly helpEmailReceivedTopic: Topic;
     public readonly emailBucket: Bucket;
     public readonly s3EmailReceivedTopic: Topic;
+    public readonly ruleSet: ReceiptRuleSet;
     constructor(scope: Construct, id: string, props: SesConstructProps) {
         super(scope, id);
         new EmailIdentity(this, 'DomainIdentity', {
@@ -38,7 +39,7 @@ export class SesConstruct extends Construct {
         this.s3EmailReceivedTopic.grantPublish(new ServicePrincipal('ses.amazonaws.com'));
         this.emailBucket = emailBucket.bucket;
         // Has to be activated from CLI
-        new ReceiptRuleSet(this, 'RuleSet', {
+        this.ruleSet = new ReceiptRuleSet(this, 'RuleSet', {
             receiptRuleSetName: 'forward-to-sns-rule-set',
             rules: [
                 {
@@ -53,7 +54,8 @@ export class SesConstruct extends Construct {
                     recipients: [`excel@${props.domain}`],
                     actions: [
                         new S3({
-                            bucket: emailBucket.bucket,
+                            bucket: this.emailBucket,
+                            objectKeyPrefix: 'excel/',
                             topic: this.s3EmailReceivedTopic
                         })
                     ]

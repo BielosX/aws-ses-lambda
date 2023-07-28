@@ -11,7 +11,8 @@ type LambdaConstructProps = {
     artifactBucket: IBucket,
     artifactName: string,
     fromDomain: string,
-    emailBucketReceivedTopic: ITopic
+    emailBucketReceivedTopic: ITopic,
+    blockedEmailsTableName: string
 };
 
 export class LambdaConstruct extends Construct {
@@ -21,6 +22,7 @@ export class LambdaConstruct extends Construct {
     public readonly welcomeLambdaName = 'welcome-lambda';
     public readonly excelLambdaName = 'excel-lambda';
     public readonly welcomeLambdaAliasName = 'welcome-lambda-alias';
+    public readonly blockingLambdaName = 'blocking-lambda';
     constructor(scope: Construct, id: string, props: LambdaConstructProps) {
         super(scope, id);
         this.lambdas = new Map<string, IFunction>();
@@ -29,7 +31,8 @@ export class LambdaConstruct extends Construct {
             [
                 [this.helpLambdaName, 'HelpEmailHandler::handleRequest'],
                 [this.welcomeLambdaName, 'WelcomeEmailHandler::handleRequest'],
-                [this.excelLambdaName, 'EmailUploadedHandler::handleRequest']
+                [this.excelLambdaName, 'EmailUploadedHandler::handleRequest'],
+                [this.blockingLambdaName, 'BlockingRuleHandler::handleRequest']
             ]
         );
         const lambdaRole = new Role(this, 'LambdaRole', {
@@ -43,7 +46,10 @@ export class LambdaConstruct extends Construct {
                     'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'),
                 ManagedPolicy.fromManagedPolicyArn(this,
                     'BasicExecutionRole',
-                    'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole')
+                    'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'),
+                ManagedPolicy.fromManagedPolicyArn(this,
+                    'DynamoDBFullAccess',
+                    'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess')
             ]
         });
         functionToHandler.forEach((functionHandler, functionName) => {
@@ -56,7 +62,8 @@ export class LambdaConstruct extends Construct {
                 memorySize: 1024,
                 role: lambdaRole,
                 environment: {
-                    FROM_DOMAIN: props.fromDomain
+                    FROM_DOMAIN: props.fromDomain,
+                    BLOCKED_EMAILS_TABLE: props.blockedEmailsTableName
                 }
             });
             this.lambdas.set(functionName, func);

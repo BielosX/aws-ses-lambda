@@ -37,6 +37,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'software.amazon.awssdk:ses:2.20.101'
     implementation 'software.amazon.awssdk:s3:2.20.108'
+    implementation 'software.amazon.awssdk:dynamodb:2.20.112'
     implementation 'org.slf4j:slf4j-api:2.0.7'
     implementation 'org.slf4j:slf4j-reload4j:2.0.7'
     implementation 'ch.qos.reload4j:reload4j:1.2.25'

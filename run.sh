@@ -197,9 +197,39 @@ function destroy_cdk() {
   popd || exit
 }
 
+function block_email() {
+  email="$1"
+read -r -d '' item << EOM
+{
+  "email": {
+    "S": "$email"
+  }
+}
+EOM
+  aws dynamodb put-item \
+    --table-name "blocked-emails" \
+    --item "$item"
+}
+
+function unblock_email() {
+  email="$1"
+read -r -d '' key << EOM
+{
+  "email": {
+    "S": "$email"
+  }
+}
+EOM
+  aws dynamodb delete-item \
+    --table-name "blocked-emails" \
+    --key "$key"
+}
+
 case "$1" in
   "deploy-terraform") deploy_terraform "$2" "$3" ;;
   "destroy-terraform") destroy_terraform ;;
   "deploy-cdk") deploy_cdk "$2" "$3" ;;
   "destroy-cdk") destroy_cdk ;;
+  "block-email") block_email "$2" ;;
+  "unblock-email") unblock_email "$2" ;;
 esac

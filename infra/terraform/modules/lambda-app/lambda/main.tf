@@ -14,7 +14,8 @@ resource "aws_iam_role" "lambda-role" {
   managed_policy_arns = [
     "arn:aws:iam::aws:policy/AmazonSESFullAccess",
     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
   ]
 }
 
@@ -22,10 +23,12 @@ locals {
   help-lambda-name = "help-lambda"
   welcome-lambda-name = "welcome-lambda"
   excel-lambda-name = "excel-lambda"
+  blocking-lambda-name = "blocking-lambda"
   lambdas = {
     (local.welcome-lambda-name) = "WelcomeEmailHandler::handleRequest"
     (local.help-lambda-name) = "HelpEmailHandler::handleRequest"
     (local.excel-lambda-name) = "EmailUploadedHandler::handleRequest"
+    (local.blocking-lambda-name) = "BlockingRuleHandler::handleRequest"
   }
 }
 
@@ -43,8 +46,15 @@ resource "aws_lambda_function" "lambda" {
   environment {
     variables = {
       FROM_DOMAIN: var.ses-domain
+      BLOCKED_EMAILS_TABLE: var.blocked-emails-table
     }
   }
+}
+
+resource "aws_lambda_permission" "ses-lambda-permission" {
+  action = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda[local.blocking-lambda-name].function_name
+  principal = "ses.amazonaws.com"
 }
 
 resource "aws_lambda_permission" "sns-invoke-permission" {

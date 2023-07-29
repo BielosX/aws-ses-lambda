@@ -17,3 +17,7 @@ variable "email-received-topic-arn" {
 variable "email-uploaded-topic-arn" {
   type = string
 }
+
+variable "blocked-emails-table" {
+  type = string
+}

@@ -26,6 +26,10 @@ module "ses" {
   email-bucket-name = module.emails-bucket.bucket-name
 }
 
+module "dynamo-db" {
+  source = "./dynamo-db"
+}
+
 module "lambda" {
   source = "./lambda"
   artifact-bucket-arn = var.artifact-bucket-arn
@@ -33,6 +37,17 @@ module "lambda" {
   email-received-topic-arn = module.ses.email-received-topic-arn
   ses-domain = module.ses.ses-domain
   email-uploaded-topic-arn = module.ses.email-uploaded-topi-arn
+  blocked-emails-table = module.dynamo-db.table-name
+}
+
+module "ses-rules" {
+  depends_on = [module.lambda]
+  source = "./ses-rules"
+  email-bucket-name = module.emails-bucket.bucket-name
+  email-received-topic-arn = module.ses.email-received-topic-arn
+  ses-domain = module.ses.ses-domain
+  email-uploaded-topic-arn = module.ses.email-uploaded-topi-arn
+  blocking-lambda-arn = module.lambda.blocking-lambda-arn
 }
 
 module "api-gateway" {
